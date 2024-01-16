@@ -209,6 +209,12 @@ class ResourceOptions:
     get_by_natural_key function.
     """
 
+    skip_blanks = False
+    """
+    Controls if the import should skip empty records. Default value is
+    False.
+    """
+
 
 class DeclarativeMetaclass(type):
     def __new__(cls, name, bases, attrs):
@@ -658,6 +664,12 @@ class Resource(metaclass=DeclarativeMetaclass):
             or import_validation_errors
         ):
             return False
+        # if every field in the import row is empty, skip the row
+        if self._meta.skip_blanks:
+            for field in self.get_import_fields():
+                if field.get_value(instance):
+                    break
+            return True
         for field in self.get_import_fields():
             # For fields that are models.fields.related.ManyRelatedManager
             # we need to compare the results
